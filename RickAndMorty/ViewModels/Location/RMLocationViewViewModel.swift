@@ -7,11 +7,25 @@
 
 import Foundation
 
+protocol RMLocationViewViewModelDelegate: AnyObject {
+    func didFetchInitialLocations()
+}
 final class RMLocationViewViewModel {
-    private var locations: [RMLocation] = []
+    weak var delegate: RMLocationViewViewModelDelegate?
     
-    private var cellViewModels: [String] = []
-    //MARK: - init
+    private var locations: [RMLocation] = [] {
+        didSet {
+            for location in locations {
+                let cellViewModel = RMLocationTableViewCellViewModel(location: location)
+                if !cellViewModels.contains(cellViewModel) {
+                    cellViewModels.append(cellViewModel)
+                }
+            }
+        }
+    }
+    
+    public private(set) var cellViewModels: [RMLocationTableViewCellViewModel] = []
+    //MARK: - Init
     init() {}
     
     private var apiInfo: RMGetAllLocationsResponse.Info? = nil
@@ -26,7 +40,7 @@ final class RMLocationViewViewModel {
                 self?.locations = results
                 self?.apiInfo = info
                 DispatchQueue.main.async {
-//                    self?.delegate?.didLoadInitialLocations()
+                    self?.delegate?.didFetchInitialLocations()
                 }
                 
                 

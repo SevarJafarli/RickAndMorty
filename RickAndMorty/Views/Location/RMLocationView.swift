@@ -24,7 +24,7 @@ final class RMLocationView: UIView {
         table.translatesAutoresizingMaskIntoConstraints = false
         table.alpha = 0
         table.isHidden = true
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "tablecell")
+        table.register(RMLocationTableViewCell.self, forCellReuseIdentifier: RMLocationTableViewCell.identifier)
         return table
     }()
     
@@ -42,12 +42,13 @@ final class RMLocationView: UIView {
         addSubviews(tableView, spinner)
         spinner.startAnimating()
         addConstraints()
-        viewModel?.fetchLocations()
+        configureTable()
     }
     
     required init?(coder: NSCoder){
         fatalError()
     }
+    
     
     private func addConstraints() {
         NSLayoutConstraint.activate([
@@ -66,5 +67,38 @@ final class RMLocationView: UIView {
     public func configure(with viewModel: RMLocationViewViewModel){
         self.viewModel = viewModel
         
+    }
+    
+    private func configureTable() {
+        tableView.delegate = self
+        tableView.dataSource = self
+    }
+}
+
+//MARK: - UITableViewDelegate, UITableViewDataSource
+extension RMLocationView: UITableViewDelegate{
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        //notify controller of selection
+    }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 1
+    }
+}
+
+extension RMLocationView:UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return viewModel?.cellViewModels.count ?? 0
+    }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cellViewModel = viewModel?.cellViewModels[indexPath.row] else {
+            fatalError()
+        }
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: RMLocationTableViewCell.identifier, for: indexPath) as? RMLocationTableViewCell else {
+            fatalError()
+        }
+        
+        cell.textLabel?.text = cellViewModel.name
+        return cell
     }
 }
