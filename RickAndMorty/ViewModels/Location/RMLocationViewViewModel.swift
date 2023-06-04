@@ -35,6 +35,7 @@ final class RMLocationViewViewModel {
         RMService.shared.execute( .listLocationsRequest, expecting: RMGetAllLocationsResponse.self) { [weak self] result in
             switch result {
             case .success(let responseModel):
+               
                 let info = responseModel.info
                 let results = responseModel.results
                 self?.locations = results
@@ -48,6 +49,13 @@ final class RMLocationViewViewModel {
                 print(error)
             }
         }
+    }
+    
+    public func location(at index: Int) -> RMLocation? {
+        guard index < locations.count, index >= 0 else {
+            return nil
+        }
+        return self.locations[index]
     }
     
     private var hasMoreResults: Bool {

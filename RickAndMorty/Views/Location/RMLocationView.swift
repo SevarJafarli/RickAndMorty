@@ -7,7 +7,12 @@
 
 import UIKit
 
+protocol RMLocationViewDelegate: AnyObject {
+    func rmLocationView(_ locationView: RMLocationView, didSelect location: RMLocation)
+}
 final class RMLocationView: UIView {
+    public weak var delegate: RMLocationViewDelegate?
+    
     private var viewModel: RMLocationViewViewModel? {
         didSet {
             spinner.stopAnimating()
@@ -20,7 +25,7 @@ final class RMLocationView: UIView {
     }
     
     private let tableView: UITableView = {
-        let table = UITableView()
+        let table = UITableView(frame: .zero, style: .grouped)
         table.translatesAutoresizingMaskIntoConstraints = false
         table.alpha = 0
         table.isHidden = true
@@ -79,6 +84,14 @@ final class RMLocationView: UIView {
 extension RMLocationView: UITableViewDelegate{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        guard let cellViewModels = viewModel?.cellViewModels else {
+            fatalError()
+        }
+        guard let locationModel = viewModel?.location(at: indexPath.row) else {
+            return
+        }
+        delegate?.rmLocationView(self, didSelect:locationModel )
         //notify controller of selection
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -91,14 +104,14 @@ extension RMLocationView:UITableViewDataSource {
         return viewModel?.cellViewModels.count ?? 0
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cellViewModel = viewModel?.cellViewModels[indexPath.row] else {
+        guard let cellViewModels = viewModel?.cellViewModels else {
             fatalError()
         }
         guard let cell = tableView.dequeueReusableCell(withIdentifier: RMLocationTableViewCell.identifier, for: indexPath) as? RMLocationTableViewCell else {
             fatalError()
         }
         
-        cell.textLabel?.text = cellViewModel.name
+        cell.configure(with: cellViewModels[indexPath.row])
         return cell
     }
 }
