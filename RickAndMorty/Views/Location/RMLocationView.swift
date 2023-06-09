@@ -12,7 +12,9 @@ protocol RMLocationViewDelegate: AnyObject {
 }
 final class RMLocationView: UIView {
     public weak var delegate: RMLocationViewDelegate?
-    
+    private var isLoadingMoreLocations = false
+  
+
     private var viewModel: RMLocationViewViewModel? {
         didSet {
             spinner.stopAnimating()
@@ -115,3 +117,26 @@ extension RMLocationView:UITableViewDataSource {
         return cell
     }
 }
+
+extension RMLocationView: UIScrollViewDelegate {
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            guard
+                let viewModel = viewModel,
+                !viewModel.cellViewModels.isEmpty,
+                viewModel.shouldShowLoadMoreIndicator, !isLoadingMoreLocations,
+                 
+                  let nextUrlString = apiInfo?.next, let url = URL(string: nextUrlString)
+            else { return }
+            
+            Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) {[weak self] t in
+                let offset = scrollView.contentOffset.y
+                let totalContentHeight = scrollView.contentSize.height
+                let totalScrollViewFixedHeight = scrollView.frame.size.height
+                if offset >= (totalContentHeight - totalScrollViewFixedHeight - 120) {
+                    self?.fetchAdditionalCharacters(url: url)
+                    
+                }
+                t.invalidate()
+            }
+        }
+    }

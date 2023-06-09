@@ -61,4 +61,8 @@ final class RMLocationViewViewModel {
     private var hasMoreResults: Bool {
         return false
     }
+    
+    public var shouldShowLoadMoreIndicator: Bool {
+        return apiInfo?.next != nil
+    }
 }
